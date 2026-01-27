@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>DSP Payment Simulator | MENA Region</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+      padding: 20px;
+    }
+    
+    header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+    
+    header p {
+      font-size: 1.2em;
+      opacity: 0.95;
+    }
+    
+    .about-project {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      padding: 25px 35px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .about-project h2 {
+      color: #1e3c72;
+      font-size: 1.5em;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+    
+    .about-project p {
+      color: #333;
+      font-size: 1.05em;
+      line-height: 1.7;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+    
+    .excel-banner {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      color: white;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      text-align: center;
+    }
+    
+    .excel-banner h2 {
+      font-size: 1.8em;
+      margin-bottom: 15px;
+    }
+    
+    .excel-banner p {
+      font-size: 1.05em;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      opacity: 0.95;
+    }
+    
+    .download-btn {
+      display: inline-block;
+      padding: 15px 40px;
+      background: white;
+      color: #667eea;
+      text-decoration: none;
+      border-radius: 10px;
+      font-size: 1.2em;
+      font-weight: 700;
+      transition: all 0.3s;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+    }
+    
+    .download-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+      background: #f0f0f0;
+    }
+    
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      margin-bottom: 30px;
+    }
+    
+    .card {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .card h2 {
+      color: #1e3c72;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+      border-bottom: 3px solid #1e3c72;
+      padding-bottom: 10px;
+    }
+    
+    .input-group {
+      margin-bottom: 25px;
+    }
+    
+    .input-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #333;
+      font-size: 1.1em;
+    }
+    
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      font-size: 1.1em;
+      transition: border-color 0.3s;
+    }
+    
+    .input-group input:focus {
+      outline: none;
+      border-color: #1e3c72;
+    }
+    
+    .button-group {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    
+    .btn-type {
+      padding: 15px;
+      border: 2px solid #ddd;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95em;
+      font-weight: 600;
+      transition: all 0.3s;
+      text-align: center;
+    }
+    
+    .btn-type:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+    
+    .btn-type.active {
+      background: #1e3c72;
+      color: white;
+      border-color: #1e3c72;
+    }
+    
+    .artist-group {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+    
+    .btn-calculate {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1.2em;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    
+    .btn-calculate:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(30, 60, 114, 0.4);
+    }
+    
+    .results {
+      background: #f8f9ff;
+      padding: 25px;
+      border-radius: 10px;
+      margin-top: 20px;
+    }
+    
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid #ddd;
+      font-size: 1.1em;
+    }
+    
+    .result-item:last-child {
+      border-bottom: none;
+      font-weight: 700;
+      font-size: 1.3em;
+      color: #1e3c72;
+      margin-top: 10px;
+      padding-top: 15px;
+      border-top: 2px solid #1e3c72;
+    }
+    
+    .result-label {
+      color: #666;
+    }
+    
+    .result-value {
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .chart-container {
+      height: 300px;
+      margin-top: 20px;
+      position: relative;
+    }
+    
+    .bar-chart {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-around;
+      height: 100%;
+      padding: 20px 0;
+    }
+    
+    .bar {
+      flex: 1;
+      margin: 0 5px;
+      background: linear-gradient(to top, #1e3c72, #2a5298);
+      border-radius: 8px 8px 0 0;
+      position: relative;
+      transition: all 0.5s ease;
+      min-height: 20px;
+    }
+    
+    .bar-label {
+      position: absolute;
+      bottom: -35px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-size: 0.85em;
+      font-weight: 600;
+      color: #333;
+    }
+    
+    .bar-value {
+      position: absolute;
+      top: -25px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-weight: 700;
+      color: #1e3c72;
+      font-size: 0.9em;
+    }
+    
+    .info-box {
+      background: #d1ecf1;
+      border-left: 4px solid #0c5460;
+      padding: 15px;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-size: 0.95em;
+      line-height: 1.6;
+    }
+    
+    .profile-section {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      margin-top: 30px;
+    }
+    
+    .profile-section h2 {
+      color: #1e3c72;
+      margin-bottom: 20px;
+      font-size: 1.8em;
+    }
+    
+    .profile-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+    }
+    
+    .profile-item h3 {
+      color: #2a5298;
+      margin-bottom: 15px;
+      font-size: 1.3em;
+    }
+    
+    .profile-item ul {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .profile-item ul li {
+      padding: 8px 0;
+      padding-left: 25px;
+      position: relative;
+      line-height: 1.6;
+    }
+    
+    .profile-item ul li:before {
+      content: "✓";
+      position: absolute;
+      left: 0;
+      color: #1e3c72;
+      font-weight: bold;
+    }
+    
+    .contact-btn {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      color: white;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 600;
+      margin-top: 15px;
+      transition: transform 0.3s;
+    }
+    
+    .contact-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(30, 60, 114, 0.4);
+    }
+    
+    @media (max-width: 768px) {
+      .main-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .profile-content {
+        grid-template-columns: 1fr;
+      }
+      
+      header h1 {
+        font-size: 1.8em;
+      }
+      
+      .button-group {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .artist-group {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>💰 DSP Payment Simulator</h1>
+      <p>MENA Region Streaming Revenue Analysis</p>
+    </header>
+    
+    <!-- About This Project Section -->
+    <div class="about-project">
+      <h2>📋 About This Project</h2>
+      <p>This interactive simulator demonstrates how different Digital Service Providers (DSPs) compensate artists in the MENA region.</p>
+      <p><strong>⚠️ All data is simulated</strong> for educational purposes to illustrate DSP payment structures and territorial rate variations.</p>
+    </div>
+    
+    <div class="main-content">
+      <!-- Calculator Section -->
+      <div class="card">
+        <h2>🎵 Revenue Calculator</h2>
+        
+        <div class="input-group">
+          <label for="streams">Number of Streams</label>
+          <input type="number" id="streams" placeholder="e.g., 1000000" value="1000000">
+        </div>
+        
+        <div class="input-group">
+          <label>Select DSP</label>
+          <div class="button-group">
+            <button class="btn-type active" data-type="spotify">
+              Spotify
+            </button>
+            <button class="btn-type" data-type="apple">
+              Apple Music
+            </button>
+            <button class="btn-type" data-type="anghami">
+              Anghami
+            </button>
+            <button class="btn-type" data-type="youtube">
+              YouTube Music
+            </button>
+          </div>
+        </div>
+        
+        <div class="input-group">
+          <label>Select Artist (Example)</label>
+          <div class="artist-group">
+            <button class="btn-type active" data-artist="amr">
+              Amr Diab
+            </button>
+            <button class="btn-type" data-artist="dizzy">
+              Dizzy DROS
+            </button>
+            <button class="btn-type" data-artist="rima">
+              Rima Yussef
+            </button>
+          </div>
+        </div>
+        
+        <button class="btn-calculate" onclick="calculateRevenue()">
+          Calculate Revenue
+        </button>
+        
+        <div class="results" id="results" style="display: none;">
+          <div id="resultsContent"></div>
+        </div>
+        
+        <div class="info-box">
+          <strong>💡 MENA Rates per Stream:</strong><br>
+          • Spotify: $0.0020<br>
+          • Apple Music: $0.0065<br>
+          • Anghami: $0.0015<br>
+          • YouTube Music: $0.0025
+        </div>
+      </div>
+      
+      <!-- Visualization Section -->
+      <div class="card">
+        <h2>📊 DSP Comparison</h2>
+        <p style="color: #666; margin-bottom: 20px;">Revenue comparison across all DSPs for your selected streams</p>
+        
+        <div class="chart-container">
+          <div class="bar-chart" id="barChart">
+            <div class="bar" style="height: 0%;" id="barSpotify">
+              <div class="bar-value" id="valueSpotify">$0</div>
+              <div class="bar-label">Spotify</div>
+            </div>
+            <div class="bar" style="height: 0%;" id="barApple">
+              <div class="bar-value" id="valueApple">$0</div>
+              <div class="bar-label">Apple<br>Music</div>
+            </div>
+            <div class="bar" style="height: 0%;" id="barAnghami">
+              <div class="bar-value" id="valueAnghami">$0</div>
+              <div class="bar-label">Anghami</div>
+            </div>
+            <div class="bar" style="height: 0%;" id="barYouTube">
+              <div class="bar-value" id="valueYouTube">$0</div>
+              <div class="bar-label">YouTube<br>Music</div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="info-box">
+          <strong>📈 Key Insight:</strong><br>
+          Apple Music offers the highest per-stream rate in MENA ($0.0065), while Anghami, as a regional player, has lower rates ($0.0015) but significant market presence. Spotify dominates in volume despite mid-range rates.
+        </div>
+      </div>
+    </div>
+    
+    <!-- Excel Download Banner -->
+    <div class="excel-banner">
+      <h2>📊 Full Excel Model Available</h2>
+      <p>This project includes a comprehensive Excel file analyzing <strong>3 MENA artists</strong> (Amr Diab, Dizzy DROS, Rima Yussef) across 4 major DSPs with detailed revenue split calculations.</p>
+      
+      <p style="margin: 20px 0;">The Excel model features automatic formulas, visual dashboards, and comparative analysis showing how artist earnings vary by DSP and territory.</p>
+      
+      <a href="https://github.com/Prudent229/dsp-payment-simulator-mena/raw/main/DSP_Payment_Simulator_MENA.xlsx" class="download-btn">
+        📥 Download Excel File
+      </a>
+      
+      <p style="margin-top: 15px; font-size: 0.9em; opacity: 0.8;">
+        ⚠️ All data is simulated for demonstration purposes
+      </p>
+    </div>
+    
+    <!-- Profile Section -->
+    <div class="profile-section">
+      <h2>👤 Profile Summary</h2>
+      <div class="profile-content">
+        <div class="profile-item">
+          <h3>🎯 Career Goal</h3>
+          <p>Seeking opportunities as a <strong>Financial Planning & Analysis (FP&A)</strong> or <strong>Royalty Analyst</strong> in major music companies, publishers, or music-tech platforms.</p>
+          
+          <h3 style="margin-top: 25px;">📧 Contact</h3>
+          <p>Prudent Honliasso<br>
+          Music Data Analyst @ BMAT Music<br>
+          4+ years experience in music tech</p>
+          <a href="mailto:prudenthonliasso@gmail.com" class="contact-btn">📬 Get in Touch</a>
+        </div>
+        
+        <div class="profile-item">
+          <h3>🎓 Certifications</h3>
+          <ul>
+            <li>Wharton (UPenn) – AI in Business</li>
+            <li>NYU x Billboard – Music Industry Essentials</li>
+            <li>Berklee College of Music – Music Business</li>
+            <li>Microsoft – Professional Power BI</li>
+            <li>365 Careers – Financial Analyst</li>
+            <li>Master's in Finance & Accounting</li>
+            <li>Master's in Accounting, Control & Audit (In Progress)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let selectedDSP = 'spotify';
+    let selectedArtist = 'amr';
+    
+    // DSP button selection
+    document.querySelectorAll('.btn-type[data-type]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.btn-type[data-type]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedDSP = this.dataset.type;
+      });
+    });
+    
+    // Artist button selection
+    document.querySelectorAll('.btn-type[data-artist]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.btn-type[data-artist]').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        selectedArtist = this.dataset.artist;
+      });
+    });
+    
+    // Calculate on Enter key
+    document.getElementById('streams').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') {
+        calculateRevenue();
+      }
+    });
+    
+    const artistData = {
+      amr: { name: 'Amr Diab', label: 'Sony Music MENA', territory: 'Egypt' },
+      dizzy: { name: 'Dizzy DROS', label: 'Warner Music MENA', territory: 'Morocco' },
+      rima: { name: 'Rima Yussef', label: 'Universal Music MENA', territory: 'Lebanon' }
+    };
+    
+    const dspRates = {
+      spotify: 0.0020,
+      apple: 0.0065,
+      anghami: 0.0015,
+      youtube: 0.0025
+    };
+    
+    const dspNames = {
+      spotify: 'Spotify',
+      apple: 'Apple Music',
+      anghami: 'Anghami',
+      youtube: 'YouTube Music'
+    };
+    
+    function calculateRevenue() {
+      const streams = parseInt(document.getElementById('streams').value) || 0;
+      
+      if (streams <= 0) {
+        alert('Please enter a valid number of streams!');
+        return;
+      }
+      
+      const rate = dspRates[selectedDSP];
+      const grossRevenue = streams * rate;
+      const labelShare = grossRevenue * 0.60;
+      const artistShare = grossRevenue * 0.25;
+      const producerShare = grossRevenue * 0.10;
+      const publisherShare = grossRevenue * 0.05;
+      
+      const artist = artistData[selectedArtist];
+      
+      let resultsHTML = `
+        <div class="result-item">
+          <span class="result-label">Artist:</span>
+          <span class="result-value">${artist.name}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Label:</span>
+          <span class="result-value">${artist.label}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">DSP:</span>
+          <span class="result-value">${dspNames[selectedDSP]}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Streams:</span>
+          <span class="result-value">${streams.toLocaleString()}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Rate per Stream:</span>
+          <span class="result-value">$${rate.toFixed(4)}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Gross Revenue:</span>
+          <span class="result-value">$${grossRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Label Share (60%):</span>
+          <span class="result-value">$${labelShare.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Artist Share (25%):</span>
+          <span class="result-value">$${artistShare.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Producer Share (10%):</span>
+          <span class="result-value">$${producerShare.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>
+        <div class="result-item">
+          <span class="result-label">Publisher Share (5%):</span>
+          <span class="result-value">$${publisherShare.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+        </div>
+      `;
+      
+      document.getElementById('resultsContent').innerHTML = resultsHTML;
+      document.getElementById('results').style.display = 'block';
+      
+      // Update chart
+      updateChart(streams);
+    }
+    
+    function updateChart(streams) {
+      const spotifyRevenue = streams * dspRates.spotify;
+      const appleRevenue = streams * dspRates.apple;
+      const anghamiRevenue = streams * dspRates.anghami;
+      const youtubeRevenue = streams * dspRates.youtube;
+      
+      const maxValue = Math.max(spotifyRevenue, appleRevenue, anghamiRevenue, youtubeRevenue);
+      
+      // Update bars
+      document.getElementById('barSpotify').style.height = `${(spotifyRevenue / maxValue) * 100}%`;
+      document.getElementById('barApple').style.height = `${(appleRevenue / maxValue) * 100}%`;
+      document.getElementById('barAnghami').style.height = `${(anghamiRevenue / maxValue) * 100}%`;
+      document.getElementById('barYouTube').style.height = `${(youtubeRevenue / maxValue) * 100}%`;
+      
+      // Update values
+      document.getElementById('valueSpotify').textContent = `$${spotifyRevenue.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+      document.getElementById('valueApple').textContent = `$${appleRevenue.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+      document.getElementById('valueAnghami').textContent = `$${anghamiRevenue.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+      document.getElementById('valueYouTube').textContent = `$${youtubeRevenue.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+    }
+    
+    // Initialize with default calculation
+    calculateRevenue();
+  </script>
+</body>
+</html>
