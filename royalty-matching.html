@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Royalty Matching Engine | MENA</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      min-height: 100vh; padding: 20px; color: #333;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header { text-align: center; color: white; margin-bottom: 30px; padding: 20px; }
+    header h1 { font-size: 2.5em; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); }
+    header p { font-size: 1.2em; opacity: 0.95; }
+    .card {
+      background: rgba(255,255,255,0.97); border-radius: 15px; padding: 25px 35px;
+      margin-bottom: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    .card h2 { color: #1e3c72; font-size: 1.45em; margin-bottom: 15px; }
+    .card p { line-height: 1.7; margin-bottom: 10px; }
+    .note { color: #c0392b; font-size: 0.92em; font-style: italic; }
+    .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .kpi { background: #f4f6fb; border-left: 5px solid #1e3c72; border-radius: 10px; padding: 15px 18px; }
+    .kpi .v { font-size: 1.7em; font-weight: 700; color: #1e3c72; }
+    .kpi .l { font-size: 0.9em; color: #555; margin-top: 4px; }
+    .kpi.good { border-color: #27ae60; } .kpi.good .v { color: #27ae60; }
+    .kpi.warn { border-color: #e67e22; } .kpi.warn .v { color: #e67e22; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .grid2 > .card { min-width: 0; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.95em; }
+    th { background: #1e3c72; color: white; text-align: left; padding: 9px 10px; }
+    td { padding: 8px 10px; border-bottom: 1px solid #e3e6ee; }
+    td.n, th.n { text-align: right; }
+    tr.total td { font-weight: 700; border-top: 2px solid #1e3c72; }
+    .bar-row { display: flex; align-items: center; margin: 8px 0; }
+    .bar-label { width: 70px; font-weight: 600; font-size: 0.95em; }
+    .bar-track { flex: 1; background: #eef1f7; border-radius: 6px; height: 26px; position: relative; }
+    .bar-fill { height: 100%; border-radius: 6px; display: flex; align-items: center; justify-content: flex-end;
+                padding-right: 8px; color: white; font-weight: 600; font-size: 0.85em; transition: width 0.6s; }
+    .maghreb { background: #e67e22; } .europe { background: #1e3c72; }
+    .legend { font-size: 0.88em; margin-top: 10px; color: #555; }
+    .legend span { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin: 0 5px -1px 12px; }
+    .insight { background: #eaf2ff; border-radius: 10px; padding: 12px 16px; margin-top: 15px; font-size: 0.95em; }
+    label { display: block; font-weight: 600; color: #1e3c72; margin: 10px 0 5px; font-size: 0.95em; }
+    input, select {
+      width: 100%; padding: 10px 12px; border: 2px solid #d5dbe8; border-radius: 8px; font-size: 1em;
+    }
+    input:focus, select:focus { outline: none; border-color: #2a5298; }
+    .fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+    .btn {
+      background: linear-gradient(135deg, #1e3c72, #2a5298); color: white; border: none; border-radius: 8px;
+      padding: 11px 22px; font-size: 1em; font-weight: 600; cursor: pointer; margin-top: 15px;
+    }
+    .btn:hover { opacity: 0.9; }
+    .examples { margin-top: 12px; font-size: 0.9em; }
+    .examples button {
+      background: #eef1f7; border: 1px solid #d5dbe8; border-radius: 20px; padding: 6px 12px;
+      margin: 4px 4px 0 0; cursor: pointer; font-size: 0.9em;
+    }
+    .examples button:hover { background: #dfe5f2; }
+    .steps { margin-top: 20px; }
+    .step { border-left: 4px solid #ccc; padding: 10px 15px; margin-bottom: 10px; background: #fafbfd; border-radius: 0 8px 8px 0; }
+    .step.ok { border-color: #27ae60; } .step.ko { border-color: #e74c3c; } .step.skip { border-color: #bbb; color: #888; }
+    .step b { color: #1e3c72; }
+    .result { margin-top: 10px; padding: 14px 18px; border-radius: 10px; font-weight: 600; font-size: 1.05em; }
+    .result.ok { background: #e8f8ef; color: #1e8449; } .result.ko { background: #fdecea; color: #c0392b; }
+    code { background: #eef1f7; padding: 1px 6px; border-radius: 4px; font-size: 0.92em; }
+    .pill { display: inline-block; padding: 2px 9px; border-radius: 12px; font-size: 0.82em; font-weight: 600; }
+    .p-ISRC { background: #e8f8ef; color: #1e8449; } .p-Artist { background: #eaf2ff; color: #1e3c72; }
+    .p-Unmatched { background: #fdecea; color: #c0392b; } .p-Duplicate { background: #fff3e0; color: #b9770e; }
+    .scroll { max-height: 380px; overflow: auto; margin-top: 12px; }
+    footer { text-align: center; color: white; padding: 20px; font-size: 0.95em; }
+    footer a { color: white; font-weight: 600; }
+    @media (max-width: 800px) {
+      .grid2, .fields, .kpis { grid-template-columns: 1fr; }
+      header h1 { font-size: 1.8em; }
+      .card { padding: 18px; }
+      body { padding: 16px; }
+      table { font-size: 0.85em; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <h1>🔎 Royalty Matching Engine</h1>
+    <p>Recovering unmatched streaming revenue for a North African label</p>
+  </header>
+
+  <div class="card">
+    <h2>📋 About This Project</h2>
+    <p>DSP statements rarely arrive clean. ISRCs come with dashes or typos, or are missing entirely, and artist names
+      appear in Latin script, Darija transliteration or Arabic. Every line that cannot be matched to the catalogue is
+      revenue that never reaches the rights holder.</p>
+    <p>This engine matches <b>317 statement lines</b> from 5 DSPs across 7 territories to the catalogue of a fictional
+      label, <b>Atlas Sound Records</b>, in three steps: <b>ISRC matching</b>, <b>artist + title matching through an
+      alias table</b>, and <b>duplicate detection</b>. The full model is built in Excel with standard formulas
+      (INDEX/MATCH, SUMIFS, COUNTIF); this page runs the same logic live in your browser.</p>
+    <p class="note">⚠️ All data is fictional. Atlas Sound Records, its artists and its tracks do not exist; revenues are simulated.</p>
+  </div>
+
+  <div class="card">
+    <h2>📊 Results – Q3 2026</h2>
+    <div class="kpis" id="kpis"></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>🧩 Revenue by matching method</h2>
+      <table id="methodTable"></table>
+      <div class="insight" id="methodInsight"></div>
+    </div>
+    <div class="card">
+      <h2>🌍 Revenue per 1,000 streams by territory</h2>
+      <div id="terrBars"></div>
+      <div class="legend"><span class="maghreb"></span>Maghreb <span class="europe"></span>Europe &amp; Gulf</div>
+      <div class="insight" id="terrInsight"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>🧪 Test a statement line</h2>
+    <p>Type what a DSP could report, or pick an example, and see how the engine matches it.</p>
+    <div class="fields">
+      <div><label for="inIsrc">ISRC reported</label><input id="inIsrc" placeholder="e.g. MA-AS1-26-00023"></div>
+      <div><label for="inTitle">Title reported</label><input id="inTitle" placeholder="e.g. خويا"></div>
+      <div><label for="inArtist">Artist reported</label><input id="inArtist" placeholder="e.g. RifNova"></div>
+    </div>
+    <div class="examples" id="examples">Examples:</div>
+    <button class="btn" id="testBtn">Match this line</button>
+    <div class="steps" id="steps"></div>
+  </div>
+
+  <div class="card">
+    <h2>📄 Explore the statement lines</h2>
+    <label for="filter">Show lines matched by</label>
+    <select id="filter">
+      <option value="Artist + Title">Artist + Title (recovered revenue)</option>
+      <option value="ISRC">ISRC</option>
+      <option value="Unmatched">Unmatched (not owned by the label)</option>
+      <option value="Duplicate">Duplicate (not paid twice)</option>
+    </select>
+    <div class="scroll"><table id="linesTable"></table></div>
+  </div>
+
+  <div class="card">
+    <h2>📥 Full Excel Model</h2>
+    <p>The workbook contains the catalogue, the 317 DSP statement lines, the alias table, every matching formula
+      column, an answer key to check the results, and the dashboard.</p>
+    <a class="btn" style="display:inline-block;text-decoration:none"
+       href="https://github.com/Prudent229/royalty-matching-engine/raw/main/Royalty_Matching_Engine.xlsx">📥 Download Excel File</a>
+    <a class="btn" style="display:inline-block;text-decoration:none;margin-left:8px"
+       href="https://github.com/Prudent229/royalty-matching-engine" target="_blank">📂 View on GitHub</a>
+  </div>
+
+  <footer>
+    Prudent Honliasso · Music Data &amp; Financial Analyst · 5+ years in music tech<br>
+    <a href="https://prudent229.github.io/">Portfolio</a> ·
+    <a href="https://www.linkedin.com/in/prudent-honliasso/" target="_blank">LinkedIn</a><br>
+    <small>Built with AI assistance, under my direction and review.</small>
+  </footer>
+</div>
+
+<script>
+const DATA = {"cat":[["ASR-001","MAAS12600001","Khouya","Rif Nova"],["ASR-002","MAAS12600002","Mchit","Rif Nova"],["ASR-003","MAAS12500003","Lil Bnat","Rif Nova"],["ASR-004","MAAS12600004","Derb Sghir","Rif Nova"],["ASR-005","MAAS12600005","Nar","Rif Nova"],["ASR-006","MAAS12500006","Ghorba","Sahara Bloom"],["ASR-007","MAAS12600007","Rmal","Sahara Bloom"],["ASR-008","MAAS12600008","Lyali","Sahara Bloom"],["ASR-009","MAAS12500009","Sahra","Sahara Bloom"],["ASR-010","MAAS12600010","Zin El Hob","Karim Zinn"],["ASR-011","MAAS12600011","Casablanca Nights","Karim Zinn"],["ASR-012","MAAS12500012","Bladi","Karim Zinn"],["ASR-013","MAAS12600013","Kalam","Karim Zinn"],["ASR-014","MAAS12600014","Sbah","Karim Zinn"],["ASR-015","MAAS12500015","Habibi Dima","Lina Mrad"],["ASR-016","MAAS12600016","Ma Nsit","Lina Mrad"],["ASR-017","MAAS12600017","Wardi","Lina Mrad"],["ASR-018","MAAS12500018","Rouh","Lina Mrad"],["ASR-019","MAAS12600019","Tbiba","Atlas Kid"],["ASR-020","MAAS12600020","Hazz","Atlas Kid"],["ASR-021","MAAS12500021","Mazal","Atlas Kid"],["ASR-022","MAAS12600022","Trap Darija","Atlas Kid"],["ASR-023","MAAS12600023","Lmouja","Atlas Kid"],["ASR-024","MAAS12500024","Chams","Douha"],["ASR-025","MAAS12600025","Galbi","Douha"],["ASR-026","MAAS12600026","Nesma","Douha"],["ASR-027","MAAS12500027","Bhar","Douha"],["ASR-028","MAAS12600028","Dakchi","Yassine Nour"],["ASR-029","MAAS12600029","Ana Hna","Yassine Nour"],["ASR-030","MAAS12500030","Sahbi","Yassine Nour"],["ASR-031","MAAS12600031","Lkhatar","Yassine Nour"],["ASR-032","MAAS12600032","Mrayti","Yassine Nour"],["ASR-033","MAAS12500033","Hay Lmohammadi","Medina Crew"],["ASR-034","MAAS12600034","Zanqa","Medina Crew"],["ASR-035","MAAS12600035","Rebel","Medina Crew"],["ASR-036","MAAS12500036","Lhouma","Medina Crew"],["ASR-037","MAAS12600037","Dima Lqdam","Medina Crew"],["ASR-038","MAAS12600038","Medina","Medina Crew"]],"alias":[["rif nova","Rif Nova"],["rifnova","Rif Nova"],["rif-nova","Rif Nova"],["ريف نوفا","Rif Nova"],["sahara bloom","Sahara Bloom"],["sahara blum","Sahara Bloom"],["saharabloom","Sahara Bloom"],["صحرا بلوم","Sahara Bloom"],["karim zinn","Karim Zinn"],["karim zin","Karim Zinn"],["k. zinn","Karim Zinn"],["kareem zinn","Karim Zinn"],["كريم زين","Karim Zinn"],["lina mrad","Lina Mrad"],["lina mourad","Lina Mrad"],["lina m'rad","Lina Mrad"],["لينا مراد","Lina Mrad"],["atlas kid","Atlas Kid"],["atlaskid","Atlas Kid"],["atlas kidd","Atlas Kid"],["أطلس كيد","Atlas Kid"],["douha","Douha"],["doha","Douha"],["douha.","Douha"],["ضحى","Douha"],["yassine nour","Yassine Nour"],["yasin nour","Yassine Nour"],["yassine noor","Yassine Nour"],["ياسين نور","Yassine Nour"],["medina crew","Medina Crew"],["medina krew","Medina Crew"],["medinacrew","Medina Crew"],["مدينة كرو","Medina Crew"],["khouya","Khouya"],["khoya","Khouya"],["خويا","Khouya"],["mchit","Mchit"],["mshit","Mchit"],["مشيت","Mchit"],["lil bnat","Lil Bnat"],["lil bnat (feat. douha)","Lil Bnat"],["ليل البنات","Lil Bnat"],["derb sghir","Derb Sghir"],["nar","Nar"],["ghorba","Ghorba"],["gourba","Ghorba"],["غربة","Ghorba"],["rmal","Rmal"],["lyali","Lyali"],["sahra","Sahra"],["zin el hob","Zin El Hob"],["zine el hob","Zin El Hob"],["zin lhob","Zin El Hob"],["casablanca nights","Casablanca Nights"],["bladi","Bladi"],["blady","Bladi"],["بلادي","Bladi"],["kalam","Kalam"],["sbah","Sbah"],["habibi dima","Habibi Dima"],["habibi dima (radio edit)","Habibi Dima"],["حبيبي ديما","Habibi Dima"],["ma nsit","Ma Nsit"],["ma nssit","Ma Nsit"],["ما نسيت","Ma Nsit"],["wardi","Wardi"],["rouh","Rouh"],["tbiba","Tbiba"],["tbiba (feat. rif nova)","Tbiba"],["طبيبة","Tbiba"],["hazz","Hazz"],["mazal","Mazal"],["trap darija","Trap Darija"],["trap darija vol.1","Trap Darija"],["lmouja","Lmouja"],["chams","Chams"],["shams","Chams"],["شمس","Chams"],["galbi","Galbi"],["qalbi","Galbi"],["قلبي","Galbi"],["nesma","Nesma"],["bhar","Bhar"],["dakchi","Dakchi"],["dak chi","Dakchi"],["داكشي","Dakchi"],["ana hna","Ana Hna"],["sahbi","Sahbi"],["sa7bi","Sahbi"],["صاحبي","Sahbi"],["lkhatar","Lkhatar"],["mrayti","Mrayti"],["hay lmohammadi","Hay Lmohammadi"],["hay mohammadi","Hay Lmohammadi"],["حي المحمدي","Hay Lmohammadi"],["zanqa","Zanqa"],["rebel","Rebel"],["lhouma","Lhouma"],["l'houma","Lhouma"],["الحومة","Lhouma"],["dima lqdam","Dima Lqdam"],["medina","Medina"]],"st":[["L0001","Apple Music","2026-07","FR","MAAS12600034","Zanqa","Medina Crew",5107,42.44],["L0002","Anghami","2026-07","FR","MAAS12600001","Khouya","Rif Nova",8400,25.01],["L0003","Anghami","2026-08","TN","MAAS12600026","Nesma","Douha",4288,3.92],["L0004","YouTube Music","2026-08","MA","MAAS12600007","Rmal","Sahara Bloom",4438,3.37],["L0005","Anghami","2026-09","BE","maas12600014","Sbah","Karim Zinn",9463,23.83],["L0006","Spotify","2026-07","MA","MAAS12600038","Medina","Medina Crew",14988,23.7],["L0007","Anghami","2026-08","BE","MAAS12500036","Lhouma","Medina Crew",29542,71.98],["L0008","Spotify","2026-08","MA","MAAS12600032","Mrayti","Yassine Nour",2534,4],["L0009","Apple Music","2026-08","DZ","MAAS12500021","Mazal","Atlas Kid",2900,5.15],["L0010","Anghami","2026-08","ES","MA-AS1-26-00023","Lmouja","Atlas Kid",5860,12.13],["L0011","YouTube Music","2026-09","MA","MA-AS1-26-00037","Dima Lqdam","Medina Crew",683,0.47],["L0012","Apple Music","2026-07","MA","MAAS12600029","Ana Hna","Yassine Nour",43905,140.33],["L0013","YouTube Music","2026-08","MA","MAAS12600023","Lmouja","Atlas Kid",3553,2.41],["L0014","Anghami","2026-07","FR","MAAS12500036","Lhouma","Medina Crew",3427,8.89],["L0015","Spotify","2026-09","TN","MAAS12600028","Dakchi","Yassine Nour",7267,9.56],["L0016","Spotify","2026-08","FR","MAAS12600022","Trap Darija","Atlas Kid",4741,17.4],["L0017","Spotify","2026-07","ES","","غربة","Sahara Bloom",2434,8.13],["L0018","Spotify","2026-08","MA","MAAS12600017","Wardi","Lina Mrad",7315,11.91],["L0019","YouTube Music","2026-07","AE","MAAS12600023","Lmouja","Atlas Kid",21411,28.61],["L0020","Anghami","2026-07","DZ","MA-AS1-25-00033","Hay Lmohammadi","Medina Crew",19783,13.12],["L0021","Spotify","2026-08","ES","DZXB72669582","Cairo Lights","Nile Echo",8805,26.79],["L0022","Spotify","2026-08","FR"," MAAS12500003 ","Lil Bnat","Rif Nova",23377,93.27],["L0023","Anghami","2026-08","DZ","MAAS12500006","Ghorba","Sahara Bloom",4819,3.09],["L0024","Spotify","2026-07","FR"," MAAS12600019 ","Tbiba","Atlas Kid",24468,89.29],["L0025","Spotify","2026-08","FR","","Bhar ","Douha.",22665,90.76],["L0026","YouTube Music","2026-08","MA","MAAS12600005","Nar","Rif Nova",18562,12.07],["L0027","YouTube Music","2026-07","AE","","Nesma ","Douha.",23183,33.59],["L0028","Deezer","2026-07","MA","EGXB72603742","Dubai Drive","Gulf Wave",6001,10.44],["L0029","Spotify","2026-09","FR","","Sa7bi","ياسين نور",9923,36.59],["L0030","YouTube Music","2026-08","MA","MAAS12500006","Ghorba","Sahara Bloom",6629,4.52],["L0031","YouTube Music","2026-07","MA","MA-AS1-25-00003","Lil Bnat","Rif Nova",3668,2.77],["L0032","YouTube Music","2026-08","MA","MAAS12600035","Rebel","Medina Crew",9634,6.31],["L0033","Anghami","2026-09","FR","","Sbah ","Karim Zinn",4193,11.57],["L0034","YouTube Music","2026-09","FR"," MAAS12600023 ","Lmouja","Atlas Kid",37762,62.26],["L0035","Spotify","2026-09","AE","","Ma Nsit","Lina Mourad",30746,90.3],["L0036","Spotify","2026-08","MA","DZQZ12689559","Ya Leil","Tarab Unit",24027,34.67],["L0037","Spotify","2026-09","ES"," MAAS12600034 ","Zanqa","Medina Crew",13193,38.87],["L0038","Anghami","2026-08","MA","","Hazz","أطلس كيد",9066,11.59],["L0039","Spotify","2026-07","FR","MAAS12600023","Lmouja","Atlas Kid",11083,38.94],["L0040","Anghami","2026-07","ES","MAAS12600020","Hazz","Atlas Kid",9037,22.54],["L0041","Anghami","2026-09","AE","MAAS12600001","Khouya","Rif Nova",7254,17.06],["L0042","Apple Music","2026-09","MA","MAAS12600037","Dima Lqdam","Medina Crew",30038,99.97],["L0043","Anghami","2026-08","DZ","MAAS12600017","Wardi","Lina Mrad",24297,16.78],["L0044","YouTube Music","2026-07","FR","MAAS12600037","Dima Lqdam","Medina Crew",9171,14.3],["L0045","Deezer","2026-08","MA","MAAS12500036","Lhouma","Medina Crew",8977,14.87],["L0046","Spotify","2026-08","FR","MAAS12600005","Nar","Rif Nova",9187,33.5],["L0047","YouTube Music","2026-07","MA","AERT42645670","Souk","Kasbah Beats",10203,6.87],["L0048","YouTube Music","2026-08","FR","MAAS12600038","Medina","Medina Crew",16382,24.57],["L0049","Anghami","2026-07","MA","MAAS12600034","Zanqa","Medina Crew",1738,2.17],["L0050","YouTube Music","2026-07","TN","MAAS12600002","Mchit","Rif Nova",22721,10.87],["L0051","YouTube Music","2026-07","MA","MAAS12600008","Lyali","Sahara Bloom",9809,6.61],["L0052","Deezer","2026-08","MA","MA-AS1-25-00030","Sahbi","Yassine Nour",17359,32.93],["L0053","Spotify","2026-07","DZ","","ZANQA","Medina Krew",3241,2.77],["L0054","Anghami","2026-08","MA","MAAS12600004","Derb Sghir","Rif Nova",23405,28.56],["L0055","Deezer","2026-07","MA","MAAS12600016","Ma Nsit","Lina Mrad",9911,16.76],["L0056","YouTube Music","2026-09","MA","","Casablanca Nights ","K. Zinn",8569,6.05],["L0057","Spotify","2026-07","MA","AERT42646569","Masr","Nile Echo",30259,52.99],["L0058","Spotify","2026-08","MA","AEQZ12627686","Souk","Kasbah Beats",30093,46.15],["L0059","YouTube Music","2026-08","MA","MAAS12560030","Sa7bi","Yasin Nour",22568,15.81],["L0060","Spotify","2026-07","TN","MAAS12500012","Bladi","Karim Zinn",8054,10.26],["L0061","YouTube Music","2026-08","FR","MAAS12600034","Zanqa","Medina Crew",54275,89.96],["L0062","Apple Music","2026-08","AE","","Habibi Dima","Lina M'rad",65132,460.75],["L0063","YouTube Music","2026-07","MA","MAAS12680014","Sbah ","كريم زين",36755,24.85],["L0064","Anghami","2026-08","MA","EGXB72661522","Masr","Nile Echo",6543,7.65],["L0065","Spotify","2026-07","DZ","MAAS12600019","Tbiba","Atlas Kid",28030,24.11],["L0066","YouTube Music","2026-09","MA","","DIMA LQDAM","مدينة كرو",21322,16.07],["L0067","Anghami","2026-09","MA","FRXB72694491","Ya Leil","Tarab Unit",38130,43.43],["L0068","Apple Music","2026-07","MA","MAAS12500030","Sahbi","Yassine Nour",5842,20.88],["L0069","Spotify","2026-08","DZ","MAAS12600038","Medina","Medina Crew",15361,14.23],["L0070","YouTube Music","2026-07","DZ","FRXB72664004","Cairo Lights","Nile Echo",4989,2.07],["L0071","Spotify","2026-07","MA","MAAS12600025","Galbi","Douha",89700,156.8],["L0072","Deezer","2026-07","ES","MAAS12500015","Habibi Dima","Lina Mrad",5893,22.17],["L0073","YouTube Music","2026-09","ES","maas12600025","Galbi","Douha",15061,21.88],["L0074","Spotify","2026-07","ES","MAAS12500030","Sahbi","Yassine Nour",13476,43.27],["L0075","Anghami","2026-08","MA","MAAS12500030","Sahbi","Yassine Nour",4041,5.26],["L0076","Apple Music","2026-08","AE","","Habibi Dima","Lina M'rad",65132,460.75],["L0077","Spotify","2026-07","MA","MAAS12610001","Khoya","Rif-Nova",7218,11.34],["L0078","Anghami","2026-09","MA","MAAS12600528","Dakchi","Yassine Nour",14841,19.2],["L0079","YouTube Music","2026-07","MA","MAAS12600008","Lyali","Sahara Bloom",9221,6.79],["L0080","Spotify","2026-09","MA","MAAS12500609","Sahra","Sahara Bloom",27900,43.89],["L0081","Apple Music","2026-08","MA","","Zin Lhob","Karim Zin",18267,60.18],["L0082","Spotify","2026-07","FR","MAAS12600026","Nesma","Douha",11811,41.12],["L0083","Spotify","2026-09","AE","maas12600028","Dakchi","Yassine Nour",102556,282.74],["L0084","Anghami","2026-08","MA","MAAS12600011","Casablanca Nights","Karim Zinn",4294,5.1],["L0085","Spotify","2026-07","MA","MAAS12600038","Medina","Medina Crew",8032,13.89],["L0086","Apple Music","2026-07","MA","MAAS12600002","Mchit","Rif Nova",36993,122.05],["L0087","Spotify","2026-08","MA","EGRT42699840","Souk","Kasbah Beats",3936,6.33],["L0088","Anghami","2026-08","MA","DZQZ12651020","Souk","Kasbah Beats",4344,5.69],["L0089","YouTube Music","2026-09","MA","maas12500027","Bhar","Douha",6332,4.33],["L0090","Spotify","2026-09","AE","MAAS12600013","Kalam","Karim Zinn",13555,44.87],["L0091","Anghami","2026-07","BE","","Galbi","ضحى",7411,19.43],["L0092","Spotify","2026-09","DZ","","Dak Chi","Yassine Noor",8968,8.62],["L0093","Anghami","2026-07","FR","maas12500018","Rouh","Lina Mrad",5479,16.23],["L0094","Anghami","2026-07","TN","TNXB72673531","Paname","Le Mellah",16815,15.96],["L0095","Spotify","2026-09","MA","MAAS12500033","Hay Lmohammadi","Medina Crew",4123,6.2],["L0096","YouTube Music","2026-09","FR"," MAAS12500027 ","Bhar","Douha",11488,18.52],["L0097","Spotify","2026-09","DZ","MAAS12600010","Zin El Hob","Karim Zinn",7625,6.47],["L0098","Spotify","2026-07","MA","MAAS12600038","Medina","Medina Crew",4019,7.04],["L0099","Spotify","2026-09","ES","MAAS12600029","Ana Hna","Yassine Nour",24266,75.99],["L0100","Spotify","2026-08","MA","MAAS12600022","Trap Darija","Atlas Kid",10587,18.09],["L0101","Spotify","2026-08","FR","MAAS12600019","Tbiba","Atlas Kid",32462,112.42],["L0102","Anghami","2026-07","MA","MAAS12600037","Dima Lqdam","Medina Crew",56711,67.71],["L0103","YouTube Music","2026-07","BE","FRRT42671927","Masr","Nile Echo",14202,21.41],["L0104","Spotify","2026-07","MA","maas12600029","Ana Hna","Yassine Nour",36435,57.68],["L0105","Spotify","2026-08","FR","","ليل البنات","Rif Nova",30035,109.96],["L0106","Deezer","2026-09","MA","MAAS12600037","Dima Lqdam","Medina Crew",7375,11.99],["L0107","Anghami","2026-08","MA","MAAS12500015","Habibi Dima","Lina Mrad",15365,18.49],["L0108","Spotify","2026-08","BE","MAAS12500003","Lil Bnat","Rif Nova",5361,18.94],["L0109","Apple Music","2026-07","MA","","Nesma ","Doha",1510,5.5],["L0110","Spotify","2026-08","MA","MAAS12600034","Zanqa","Medina Crew",2419,3.62],["L0111","Anghami","2026-08","MA","MA-AS1-26-00034","Zanqa","Medina Crew",20193,22.17],["L0112","Spotify","2026-08","FR","","مشيت","ريف نوفا",74638,252.62],["L0113","YouTube Music","2026-09","DZ","MAAS12600008","Lyali","Sahara Bloom",23052,8.55],["L0114","YouTube Music","2026-08","MA","MAAS12600019","Tbiba","Atlas Kid",13664,10.16],["L0115","Spotify","2026-08","DZ","maas12600038","Medina","Medina Crew",2674,2.42],["L0116","Spotify","2026-08","MA","MA-AS1-25-00027","Bhar","Douha",16569,28.8],["L0117","Spotify","2026-08","FR","MAAS12600004","Derb Sghir","Rif Nova",6168,21.39],["L0118","Spotify","2026-08","MA","MAAS12600010","Zin El Hob","Karim Zinn",5031,7.65],["L0119","Anghami","2026-07","DZ","MAAS12500015","Habibi Dima","Lina Mrad",14671,8.99],["L0120","YouTube Music","2026-07","AE","EGRT42691276","Tunis Night","Carthage Flow",16144,22.83],["L0121","Spotify","2026-08","MA","MA-AS1-25-00027","Bhar","Douha",16569,28.8],["L0122","Spotify","2026-08","DZ","MAAS12670032","Mrayti ","Yassine Noor",28789,27.19],["L0123","YouTube Music","2026-09","MA","MAAS12600838","MEDINA","Medina Crew",6790,4.74],["L0124","Spotify","2026-07","FR","MAAS12600026","Nesma","Douha",3239,12.6],["L0125","Spotify","2026-07","MA","MAAS12600007","Rmal","Sahara Bloom",5030,7.54],["L0126","Spotify","2026-07","MA","MA-AS1-26-00005","Nar","Rif Nova",6535,9.7],["L0127","YouTube Music","2026-08","AE","MAAS12600025","Galbi","Douha",2646,3.48],["L0128","Spotify","2026-09","BE","MAAS12500024","Chams","Douha",75578,282.31],["L0129","Anghami","2026-07","FR","maas12600011","Casablanca Nights","Karim Zinn",2605,7.32],["L0130","Anghami","2026-08","TN","MAAS12501027","Bhar","Douha.",24181,21.84],["L0131","YouTube Music","2026-07","MA","MAAS12600002","Mchit","Rif Nova",61407,43.96],["L0132","Deezer","2026-08","MA"," MAAS12500015 ","Habibi Dima","Lina Mrad",4666,8.41],["L0133","Spotify","2026-09","ES"," MAAS12600002 ","Mchit","Rif Nova",33461,104.07],["L0134","YouTube Music","2026-09","DZ","","بلادي","Karim Zinn",4466,1.74],["L0135","Spotify","2026-09","MA","MAAS12500018","Rouh","Lina Mrad",2446,3.55],["L0136","YouTube Music","2026-07","FR","","Qalbi","Douha",1938,3.24],["L0137","YouTube Music","2026-08","ES","MAAS12600019","Tbiba","Atlas Kid",11795,17.24],["L0138","Spotify","2026-07","AE","MAAS12600026","Nesma","Douha",5453,15.27],["L0139","Anghami","2026-07","MA","MAAS12500018","Rouh","Lina Mrad",74921,89.64],["L0140","Spotify","2026-08","MA","MAAS12600034","Zanqa","Medina Crew",15090,23.78],["L0141","YouTube Music","2026-07","MA","MAAS12600037","Dima Lqdam","Medina Crew",5378,3.81],["L0142","Spotify","2026-08","FR","MAAS12510027","Bhar","Douha",28056,105.71],["L0143","YouTube Music","2026-07","DZ","MAAS12600031","Lkhatar","Yassine Nour",31313,12.63],["L0144","Spotify","2026-07","FR","MAAS12604038","Medina","مدينة كرو",669,2.32],["L0145","Apple Music","2026-08","FR","MAAS12600038","Medina","Medina Crew",27714,207.15],["L0146","Spotify","2026-09","FR","","غربة","Sahara Bloom",170833,651.04],["L0147","Anghami","2026-08","DZ","MAAS12500021","Mazal","Atlas Kid",7579,5.33],["L0148","Spotify","2026-08","TN","FRQZ12663194","Paname","Le Mellah",50209,65.32],["L0149","YouTube Music","2026-08","ES","","Kalam ","Karim Zinn",26867,33.82],["L0150","YouTube Music","2026-07","BE","MAAS12600007","Rmal","Sahara Bloom",7138,10.95],["L0151","Spotify","2026-09","MA","","KALAM","Karim Zinn",16307,23.99],["L0152","YouTube Music","2026-07","MA","MAAS12600013","Kalam","Karim Zinn",21167,15.29],["L0153","Deezer","2026-09","MA","MAAS12600035","Rebel","Medina Crew",4482,8.56],["L0154","Deezer","2026-09","AE"," MAAS12500009 ","Sahra","Sahara Bloom",11747,36.32],["L0155","YouTube Music","2026-08","FR","MAAS12600005","Nar","Rif Nova",17910,28.76],["L0156","Spotify","2026-08","MA","MAAS12500024","Chams","Douha",6633,10.05],["L0157","YouTube Music","2026-09","TN","DZRT42614075","Paname","Le Mellah",6884,3.61],["L0158","YouTube Music","2026-08","TN","MAAS12600034","Zanqa","Medina Crew",4924,2.42],["L0159","Spotify","2026-07","DZ","maas12600002","Mchit","Rif Nova",49992,46.05],["L0160","Spotify","2026-08","MA","MAAS12600020","Hazz","Atlas Kid",2042,3.52],["L0161","Spotify","2026-07","FR","MAAS12600022","Trap Darija","Atlas Kid",7144,27.77],["L0162","Spotify","2026-07","MA","MAAS12600010","Zin El Hob","Karim Zinn",29945,43.24],["L0163","Spotify","2026-08","DZ","AERT42647373","Cairo Lights","Nile Echo",34158,32.78],["L0164","YouTube Music","2026-08","BE","","Sbah ","Karim Zinn",13464,19.61],["L0165","Spotify","2026-08","MA","MAAS12600002","Mchit","Rif Nova",23426,35.93],["L0166","Spotify","2026-08","MA","AERT42678153","Ya Leil","Tarab Unit",5245,7.85],["L0167","Spotify","2026-09","MA","DZXB72657359","Ya Leil","Tarab Unit",20386,34.45],["L0168","YouTube Music","2026-08","MA","MAAS12600020","Hazz","Atlas Kid",22584,14.82],["L0169","Anghami","2026-07","MA","MAAS12602029","ANA HNA","Yassine Nour",2129,2.34],["L0170","Spotify","2026-07","TN","MAAS12600005","Nar","Rif Nova",8444,10.12],["L0171","Spotify","2026-07","MA","MA-AS1-26-00035","Rebel","Medina Crew",2534,3.8],["L0172","Apple Music","2026-08","FR","MAAS12600038","Medina","Medina Crew",27714,207.15],["L0173","Spotify","2026-09","MA","MAAS12600035","Rebel","Medina Crew",12912,18.84],["L0174","Deezer","2026-09","MA","MAAS12600027","Wardi","Lina Mrad",14807,24.44],["L0175","Deezer","2026-09","MA","","Habibi Dima (Radio Edit)","Lina Mourad",17546,31.41],["L0176","YouTube Music","2026-09","MA"," MAAS12600025 ","Galbi","Douha",5462,3.9],["L0177","Spotify","2026-08","AE","MAAS12600035","Rebel","Medina Crew",21204,59.32],["L0178","Spotify","2026-08","MA","MAAS12600034","Zanqa","Medina Crew",12028,19.6],["L0179","Anghami","2026-07","MA","MAAS12600017","Wardi","Lina Mrad",27365,32.35],["L0180","Spotify","2026-07","MA","MAAS12500009","Sahra","Sahara Bloom",10939,17.16],["L0181","Apple Music","2026-07","MA","MAAS12600035","Rebel","Medina Crew",14125,54.16],["L0182","Spotify","2026-09","FR","MAAS12500027","Bhar","Douha",3349,12.23],["L0183","YouTube Music","2026-07","FR","MAAS12500018","Rouh","Lina Mrad",8604,15.13],["L0184","Anghami","2026-09","AE","MAAS12500003","Lil Bnat","Rif Nova",6516,13.4],["L0185","Spotify","2026-07","FR","MAAS12600023","Lmouja","Atlas Kid",11083,38.94],["L0186","Spotify","2026-09","MA","MAAS12500024","Chams","Douha",2575,3.94],["L0187","YouTube Music","2026-08","MA","MAAS12600023","Lmouja","Atlas Kid",3553,2.41],["L0188","Spotify","2026-07","FR","MAAS12600022","Trap Darija","Atlas Kid",10966,42.71],["L0189","YouTube Music","2026-07","MA","MAAS12600010","Zin El Hob","Karim Zinn",28867,21.29],["L0190","YouTube Music","2026-08","TN","","Trap Darija Vol.1","AtlasKid",8230,4.48],["L0191","Spotify","2026-09","FR","MAAS12600016","Ma Nsit","Lina Mrad",2864,10.97],["L0192","YouTube Music","2026-09","MA","maas12500006","Ghorba","Sahara Bloom",1869,1.27],["L0193","Apple Music","2026-08","MA","","Zin Lhob","Karim Zin",18267,60.18],["L0194","Spotify","2026-08","MA","","Medina","مدينة كرو",35481,61.98],["L0195","Anghami","2026-09","DZ","MAAS12500009","Sahra","Sahara Bloom",1376,0.86],["L0196","YouTube Music","2026-08","MA","MAAS12600037","Dima Lqdam","Medina Crew",12325,7.97],["L0197","Spotify","2026-08","MA","EGXB72637485","Cairo Lights","Nile Echo",17257,28.56],["L0198","Anghami","2026-08","MA","MAAS12600007","Rmal","Sahara Bloom",5942,6.97],["L0199","YouTube Music","2026-09","DZ","","Casablanca Nights","Kareem Zinn",35817,13],["L0200","Apple Music","2026-08","MA","MAAS12500030","Sahbi","Yassine Nour",18123,69.45],["L0201","Spotify","2026-08","AE","MAAS12500003","Lil Bnat","Rif Nova",22045,70.87],["L0202","YouTube Music","2026-09","FR","","WARDI","Lina M'rad",56274,90.96],["L0203","Spotify","2026-07","DZ","MAAS12600013","Kalam","Karim Zinn",18067,14.45],["L0204","YouTube Music","2026-09","FR","","Tbiba (feat. Rif Nova)","Atlas Kid",5296,9.16],["L0205","Apple Music","2026-07","ES","MAAS12500033","Hay Lmohammadi","Medina Crew",16213,116.01],["L0206","YouTube Music","2026-07","MA","MAAS12600037","Dima Lqdam","Medina Crew",28904,21.93],["L0207","YouTube Music","2026-07","DZ","FRXB72664004","Cairo Lights","Nile Echo",4989,2.07],["L0208","YouTube Music","2026-09","FR","MAAS12600014","Sbah","Karim Zinn",43427,70.57],["L0209","Deezer","2026-07","AE","MAAS12500015","Habibi Dima","Lina Mrad",4405,14.85],["L0210","Spotify","2026-09","FR","MAAS12600013","Kalam","Karim Zinn",4814,18.78],["L0211","Spotify","2026-08","FR","maas12500036","Lhouma","Medina Crew",6119,23.44],["L0212","YouTube Music","2026-08","DZ","MA-AS1-25-00027","Bhar","Douha",17171,7.01],["L0213","Anghami","2026-07","MA","MAAS12600035","Rebel","Medina Crew",2459,2.89],["L0214","YouTube Music","2026-08","MA","MAAS12500033","Hay Lmohammadi","Medina Crew",7637,4.89],["L0215","Anghami","2026-09","FR","FRQZ12680480","Cairo Lights","Nile Echo",12806,33.27],["L0216","Anghami","2026-08","MA","MAAS12600013","Kalam","Karim Zinn",9459,11.26],["L0217","Spotify","2026-07","MA","MAAS12600027","Qalbi","Douha",6219,10.01],["L0218","Anghami","2026-09","FR","MAAS12600020","Hazz","Atlas Kid",43072,130.12],["L0219","Anghami","2026-07","MA","MAAS12608022","Trap Darija Vol.1","Atlas Kid",16081,19.62],["L0220","YouTube Music","2026-09","AE","MAAS12600010","Zin El Hob","Karim Zinn",11450,16.42],["L0221","Spotify","2026-09","AE","MAAS12500083","Lil Bnat","RIF NOVA",4631,15.41],["L0222","Spotify","2026-09","MA","MAAS12500033","Hay Lmohammadi","Medina Crew",2848,4.58],["L0223","Spotify","2026-08","DZ","MAAS12600016","Ma Nsit","Lina Mrad",13721,11.74],["L0224","Apple Music","2026-09","BE","EGRT42607314","Dubai Drive","Gulf Wave",6724,52.49],["L0225","Anghami","2026-08","DZ","","داكشي","Yasin Nour",36885,26.58],["L0226","YouTube Music","2026-09","MA","MAAS12600038","Medina","Medina Crew",18346,13.19],["L0227","YouTube Music","2026-07","TN","MAAS12500012","Bladi","Karim Zinn",3976,2.21],["L0228","Deezer","2026-07","MA","MAAS12600037","Dima Lqdam","Medina Crew",10223,20.09],["L0229","Spotify","2026-07","AE","DZXB72689578","Ya Leil","Tarab Unit",7331,21.6],["L0230","Deezer","2026-09","AE","MAAS12600002","Mchit","Rif Nova",11375,35.72],["L0231","Anghami","2026-08","MA","","Hazz ","AtlasKid",4009,4.58],["L0232","Spotify","2026-09","DZ","MAAS12630028","Dakchi","Yassine Nour",8682,8.32],["L0233","Spotify","2026-08","DZ","MAAS12500033","Hay Lmohammadi","Medina Crew",19419,16.34],["L0234","Spotify","2026-07","DZ","","Bhar ","Douha",11262,9.68],["L0235","Spotify","2026-07","MA"," MAAS12600038 ","Medina","Medina Crew",6190,10.51],["L0236","Apple Music","2026-08","MA","MAAS12500012","Bladi","Karim Zinn",30970,102.93],["L0237","YouTube Music","2026-09","FR","MA-AS1-26-00020","Hazz","Atlas Kid",25343,43.63],["L0238","Spotify","2026-07","TN","MAAS12600028","Dakchi","Yassine Nour",7048,9.01],["L0239","YouTube Music","2026-08","MA","AERT42605902","Cairo Lights","Nile Echo",6471,4.32],["L0240","YouTube Music","2026-08","MA","MAAS12600004","Derb Sghir","Rif Nova",8971,6.88],["L0241","YouTube Music","2026-09","TN","MAAS12607034","Zanqa","Medina Crew",18428,9.27],["L0242","Anghami","2026-07","DZ","FRXB72698817","Masr","Nile Echo",50506,30.26],["L0243","YouTube Music","2026-08","MA","MAAS12600007","Rmal","Sahara Bloom",4438,3.37],["L0244","Apple Music","2026-09","ES","FRQZ12648443","Souk","Kasbah Beats",15323,108.29],["L0245","YouTube Music","2026-08","DZ","","Medina ","Medina Krew",29394,11.2],["L0246","Spotify","2026-07","MA","MAAS12600017","Wardi","Lina Mrad",55216,81.61],["L0247","Anghami","2026-07","BE","MAAS12600010","Zin El Hob","Karim Zinn",4702,12.11],["L0248","Apple Music","2026-08","TN","MAAS12600028","Dakchi","Yassine Nour",6421,18.41],["L0249","Deezer","2026-09","ES","","WARDI","Lina Mrad",3020,10.04],["L0250","Deezer","2026-09","MA","MAAS12600027","Wardi","Lina Mrad",14807,24.44],["L0251","Spotify","2026-09","AE","MAAS12600028","Dakchi","Yassine Nour",1975,5.81],["L0252","Anghami","2026-08","MA","MAAS12600035","Rebel","Medina Crew",18943,24.89],["L0253","Deezer","2026-09","TN","EGQZ12607287","Ya Leil","Tarab Unit",14597,20.67],["L0254","YouTube Music","2026-07","FR","MAAS12600038","Medina","Medina Crew",16491,25.45],["L0255","Spotify","2026-07","DZ","MAAS12500012","Bladi","Karim Zinn",19027,17.58],["L0256","Spotify","2026-09","AE","MAAS12640019","Tbiba","Atlas Kid",27326,85.94],["L0257","Deezer","2026-09","MA","MAAS12600023","Lmouja","Atlas Kid",6030,10.32],["L0258","Spotify","2026-09","MA","","KALAM","Karim Zinn",16307,23.99],["L0259","YouTube Music","2026-09","FR","MAAS12600014","Sbah","Karim Zinn",43427,70.57],["L0260","Deezer","2026-09","FR","MA-AS1-26-00034","Zanqa","Medina Crew",20011,89.26],["L0261","Spotify","2026-07","TN","FRRT42623710","Masr","Nile Echo",4992,5.97],["L0262","Apple Music","2026-08","TN","","Ghorba","Sahara Bloom",2665,6.45],["L0263","YouTube Music","2026-09","MA","MAAS12600035","Rebel","Medina Crew",29749,19.42],["L0264","Anghami","2026-09","MA","MAAS12600000","Lyali","صحرا بلوم",9221,11.49],["L0265","Apple Music","2026-07","DZ","","Dak Chi","Yassine Nour",16370,32.4],["L0266","Anghami","2026-09","FR","MAAS12500027","Bhar","Douha",12760,36.93],["L0267","Anghami","2026-08","MA","FRQZ12639621","Dubai Drive","Gulf Wave",21968,26.33],["L0268","YouTube Music","2026-07","MA","MAAS12600035","Rebel","Medina Crew",6817,4.57],["L0269","YouTube Music","2026-08","DZ","","Khoya","ريف نوفا",5282,1.94],["L0270","YouTube Music","2026-08","BE","MAAS12600022","Trap Darija","Atlas Kid",11880,17.25],["L0271","Anghami","2026-09","DZ","maas12600008","Lyali","Sahara Bloom",7160,5.06],["L0272","Spotify","2026-07","TN","MAAS12500015","Habibi Dima","Lina Mrad",3757,4.77],["L0273","YouTube Music","2026-08","FR","MAAS12600005","Nar","Rif Nova",17910,28.76],["L0274","Spotify","2026-07","TN"," MAAS12600020 ","Hazz","Atlas Kid",7996,8.9],["L0275","Deezer","2026-09","AE","TNXB72610290","Paname","Le Mellah",7323,24.57],["L0276","Spotify","2026-09","MA","MAAS12600035","Rebel","Medina Crew",8006,13.34],["L0277","YouTube Music","2026-07","FR","maas12600020","Hazz","Atlas Kid",7430,11.72],["L0278","Anghami","2026-09","ES","MA-AS1-26-00035","Rebel","Medina Crew",4075,9.18],["L0279","Apple Music","2026-08","DZ","MAAS12600022","Trap Darija","Atlas Kid",18032,38.14],["L0280","Anghami","2026-08","DZ","MAAS12500015","Habibi Dima","Lina Mrad",7507,4.6],["L0281","Deezer","2026-07","TN","MAAS12600026","Nesma","Douha",15922,20.39],["L0282","Spotify","2026-08","MA","MAAS12600022","Trap Darija","Atlas Kid",10587,18.09],["L0283","Spotify","2026-07","MA","MAAS12600008","Lyali","Sahara Bloom",5885,9.35],["L0284","Spotify","2026-08","DZ","MAAS12600010","Zin El Hob","Karim Zinn",5323,4.6],["L0285","Spotify","2026-09","FR","MAAS12600007","Rmal","Sahara Bloom",5056,16.97],["L0286","Apple Music","2026-08","MA","","Zin Lhob","Karim Zin",18267,60.18],["L0287","YouTube Music","2026-07","FR","MAAS12600037","Dima Lqdam","Medina Crew",9171,14.3],["L0288","Deezer","2026-08","MA","MAAS12600019","Tbiba","Atlas Kid",17402,33.03],["L0289","YouTube Music","2026-09","AE","MAAS12600016","Ma Nsit","Lina Mrad",19590,25.36],["L0290","YouTube Music","2026-08","MA","MAAS12600037","Dima Lqdam","Medina Crew",8827,6.74],["L0291","Apple Music","2026-09","DZ","MA-AS1-26-00019","Tbiba","Atlas Kid",12173,25.51],["L0292","YouTube Music","2026-09","DZ","MAAS12500024","Chams","Douha",32198,12.22],["L0293","Spotify","2026-08","BE","maas12600026","Nesma","Douha",59196,212.18],["L0294","Anghami","2026-09","MA","MAAS12500006","Ghorba","Sahara Bloom",4564,5.07],["L0295","Spotify","2026-07","FR","MAAS12600029","Ana Hna","Yassine Nour",34907,130.63],["L0296","Spotify","2026-08","DZ","MAAS12680007","Rmal","Sahara Blum",7218,6.92],["L0297","Spotify","2026-07","TN","MAAS12600014","Sbah","Karim Zinn",9104,11.57],["L0298","Anghami","2026-08","AE","MAAS12500012","Bladi","Karim Zinn",10695,26.24],["L0299","Spotify","2026-07","MA","MAAS12600005","Nar","Rif Nova",7798,12.35],["L0300","Spotify","2026-08","DZ","","Wardi","Lina Mourad",2672,2.43],["L0301","Spotify","2026-09","DZ","MAAS12600013","Kalam","Karim Zinn",166638,142.3],["L0302","Spotify","2026-09","MA","","Kalam ","K. Zinn",15060,26.35],["L0303","Spotify","2026-09","DZ","","Trap Darija Vol.1","Atlas Kidd",3575,3.15],["L0304","Spotify","2026-07","TN","MAAS12600035","Rebel","Medina Crew",4140,5.34],["L0305","Anghami","2026-07","TN","MAAS12600010","Zin El Hob","Karim Zinn",17955,16.71],["L0306","Spotify","2026-09","TN","MAAS12600026","Nesma","Douha",10393,13.48],["L0307","Anghami","2026-07","TN","MAAS12500021","Mazal","Atlas Kid",6376,5.63],["L0308","Spotify","2026-07","TN","MA-AS1-26-00025","Galbi","Douha",13188,15.2],["L0309","Spotify","2026-07","TN","MAAS12600010","Zin El Hob","Karim Zinn",43634,51.79],["L0310","Apple Music","2026-07","MA","MAAS12500009","Sahra","Sahara Bloom",18984,70.36],["L0311","Anghami","2026-07","DZ","TNQZ12645696","Cairo Lights","Nile Echo",7079,4.22],["L0312","YouTube Music","2026-08","DZ","MAAS12500003","Lil Bnat","Rif Nova",3438,1.45],["L0313","Deezer","2026-07","DZ","AERT42699498","Souk","Kasbah Beats",8984,9.1],["L0314","Anghami","2026-07","AE","MAAS12600019","Tbiba","Atlas Kid",4846,10.75],["L0315","Deezer","2026-07","BE","MAAS12600002","Mchit","Rif Nova",4272,15.36],["L0316","Spotify","2026-09","DZ","MAAS12600002","Mchit","Rif Nova",86266,82.83],["L0317","Anghami","2026-08","FR","MAAS12600016","Ma Nsit","Lina Mrad",25769,65.81]]};
+
+// ---------- the matching engine (same logic as the Excel formulas) ----------
+const norm = s => String(s || '').trim().replace(/\s+/g, ' ').toLowerCase();      // = LOWER(TRIM())
+const cleanIsrc = s => String(s || '').replace(/[-\s]/g, '').toUpperCase();        // = UPPER(SUBSTITUTE(...))
+const byIsrc = {}, byKey = {}, trackInfo = {}, alias = {};
+DATA.cat.forEach(([id, isrc, title, artist]) => {
+  byIsrc[isrc] = id; byKey[(artist + '|' + title).toLowerCase()] = id; trackInfo[id] = { isrc, title, artist };
+});
+DATA.alias.forEach(([variant, canonical]) => { alias[norm(variant)] = canonical; });
+
+function matchLine(isrc, title, artist) {
+  const clean = cleanIsrc(isrc);
+  const isrcId = byIsrc[clean] || '';
+  const artistC = alias[norm(artist)] || '';
+  const titleC = alias[norm(title)] || '';
+  const nameId = (artistC && titleC) ? (byKey[(artistC + '|' + titleC).toLowerCase()] || '') : '';
+  const id = isrcId || nameId;
+  const method = isrcId ? 'ISRC' : (nameId ? 'Artist + Title' : 'Unmatched');
+  return { clean, isrcId, artistC, titleC, nameId, id, method };
+}
+
+// run the engine on all lines
+const seen = new Set();
+const lines = DATA.st.map(r => {
+  const [lineId, dsp, period, terr, isrc, title, artist, streams, rev] = r;
+  const m = matchLine(isrc, title, artist);
+  const sig = r.slice(1).join('|');
+  const dup = seen.has(sig); seen.add(sig);
+  const status = dup ? 'Duplicate' : (m.id ? 'Matched' : 'Unmatched');
+  return { lineId, dsp, period, terr, isrc, title, artist, streams, rev, ...m,
+           status, group: dup ? 'Duplicate' : m.method, payable: status === 'Matched' ? rev : 0 };
+});
+
+// ---------- results ----------
+const sum = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
+const usd = v => '$' + v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const num = v => v.toLocaleString('en-US');
+const total = sum(lines, l => l.rev);
+const dupRev = sum(lines.filter(l => l.status === 'Duplicate'), l => l.rev);
+const net = total - dupRev;
+const payable = sum(lines, l => l.payable);
+const recovered = sum(lines.filter(l => l.group === 'Artist + Title'), l => l.rev);
+const isrcOnly = sum(lines.filter(l => l.group === 'ISRC'), l => l.rev);
+
+const kpis = [
+  [num(lines.length), 'Statement lines processed', ''],
+  [usd(net), 'Net revenue (duplicates removed)', ''],
+  [(isrcOnly / net * 100).toFixed(1) + '%', 'Match rate with ISRC only', 'warn'],
+  [(payable / net * 100).toFixed(1) + '%', 'Match rate with the full engine', 'good'],
+  [usd(recovered), 'Recovered by Artist + Title', 'good'],
+  [usd(dupRev), 'Duplicate payments avoided', 'warn'],
+];
+document.getElementById('kpis').innerHTML = kpis.map(([v, l, c]) =>
+  `<div class="kpi ${c}"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');
+
+const groups = ['ISRC', 'Artist + Title', 'Unmatched', 'Duplicate'];
+let rows = '<tr><th>Method</th><th class="n">Lines</th><th class="n">Revenue</th><th class="n">% of total</th></tr>';
+groups.forEach(g => {
+  const ls = lines.filter(l => l.group === g), r = sum(ls, l => l.rev);
+  rows += `<tr><td>${g}</td><td class="n">${ls.length}</td><td class="n">${usd(r)}</td><td class="n">${(r / total * 100).toFixed(1)}%</td></tr>`;
+});
+rows += `<tr class="total"><td>Total</td><td class="n">${lines.length}</td><td class="n">${usd(total)}</td><td class="n">100.0%</td></tr>`;
+document.getElementById('methodTable').innerHTML = rows;
+document.getElementById('methodInsight').innerHTML =
+  `💡 Relying on ISRC alone would leave <b>${usd(recovered)}</b> unclaimed. The alias table recovers it by
+   recognising Arabic-script and transliterated names.`;
+
+const terrs = ['MA', 'DZ', 'TN', 'FR', 'BE', 'ES', 'AE'], maghreb = ['MA', 'DZ', 'TN'];
+const names = { MA: 'Morocco', DZ: 'Algeria', TN: 'Tunisia', FR: 'France', BE: 'Belgium', ES: 'Spain', AE: 'UAE' };
+const rate = {};
+terrs.forEach(t => {
+  const ls = lines.filter(l => l.terr === t && l.status === 'Matched');
+  rate[t] = sum(ls, l => l.payable) / sum(ls, l => l.streams) * 1000;
+});
+const maxR = Math.max(...Object.values(rate));
+document.getElementById('terrBars').innerHTML = terrs.map(t =>
+  `<div class="bar-row" title="${names[t]}"><div class="bar-label">${t}</div><div class="bar-track">
+   <div class="bar-fill ${maghreb.includes(t) ? 'maghreb' : 'europe'}" style="width:${rate[t] / maxR * 100}%">$${rate[t].toFixed(2)}</div>
+   </div></div>`).join('');
+document.getElementById('terrInsight').innerHTML =
+  `💡 A stream in France earns <b>${(rate.FR / rate.MA).toFixed(1)}x</b> a stream in Morocco and
+   <b>${(rate.FR / rate.DZ).toFixed(1)}x</b> a stream in Algeria: activating the European diaspora raises the value of every stream.`;
+
+// ---------- line explorer ----------
+const pillClass = g => 'p-' + g.split(' ')[0];
+function renderLines() {
+  const g = document.getElementById('filter').value;
+  let h = '<tr><th>Line</th><th>DSP</th><th>Terr.</th><th>ISRC reported</th><th>Title reported</th><th>Artist reported</th><th class="n">Revenue</th><th>Result</th></tr>';
+  lines.filter(l => l.group === g).forEach(l => {
+    const res = l.status === 'Duplicate' ? 'Not paid twice' : (l.id ? `${l.id} – ${trackInfo[l.id].title}` : 'Not in catalogue');
+    h += `<tr><td>${l.lineId}</td><td>${l.dsp}</td><td>${l.terr}</td><td><code>${l.isrc || '—'}</code></td>
+          <td>${l.title}</td><td>${l.artist}</td><td class="n">${usd(l.rev)}</td>
+          <td><span class="pill ${pillClass(l.group)}">${res}</span></td></tr>`;
+  });
+  document.getElementById('linesTable').innerHTML = h;
+}
+document.getElementById('filter').addEventListener('change', renderLines);
+renderLines();
+
+// ---------- test a line ----------
+const examples = [
+  ['ISRC with dashes', 'MA-AS1-26-00023', 'Lmouja', 'Atlas Kid'],
+  ['Arabic script, no ISRC', '', 'خويا', 'ريف نوفا'],
+  ['Transliteration + feat.', '', 'Tbiba (feat. Rif Nova)', 'Atlas Kidd'],
+  ['ISRC typo', 'MAAS12600099', 'Qalbi', 'Doha'],
+  ['Another label\'s track', 'EGXB72600123', 'Cairo Lights', 'Nile Echo'],
+];
+const ex = document.getElementById('examples');
+examples.forEach(([label, i, t, a]) => {
+  const b = document.createElement('button'); b.textContent = label;
+  b.onclick = () => { inIsrc.value = i; inTitle.value = t; inArtist.value = a; runTest(); };
+  ex.appendChild(b);
+});
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+function runTest() {
+  const i = inIsrc.value, t = inTitle.value, a = inArtist.value;
+  const m = matchLine(i, t, a);
+  let h = '';
+  if (!i.trim()) h += `<div class="step ko"><b>Step 1 – ISRC.</b> No ISRC reported: moving to artist + title.</div>`;
+  else h += `<div class="step ${m.isrcId ? 'ok' : 'ko'}"><b>Step 1 – ISRC.</b> Cleaned <code>${esc(i)}</code> → <code>${esc(m.clean)}</code>:
+           ${m.isrcId ? `found in the catalogue (<b>${m.isrcId}</b>).` : 'not found in the catalogue (typo or another label\'s track).'}</div>`;
+  if (m.isrcId) h += `<div class="step skip"><b>Step 2 – Artist + title.</b> Not needed: the ISRC already identified the track.</div>`;
+  else h += `<div class="step ${m.nameId ? 'ok' : 'ko'}"><b>Step 2 – Artist + title.</b>
+           Artist <code>${esc(a || '—')}</code> → ${m.artistC ? `<b>${esc(m.artistC)}</b>` : 'not in the alias table'};
+           title <code>${esc(t || '—')}</code> → ${m.titleC ? `<b>${esc(m.titleC)}</b>` : 'not in the alias table'}.
+           ${m.nameId ? `Catalogue match: <b>${m.nameId}</b>.` : 'No catalogue match.'}</div>`;
+  h += m.id
+    ? `<div class="result ok">✅ Matched by ${m.method}: ${m.id} – “${esc(trackInfo[m.id].title)}” by ${esc(trackInfo[m.id].artist)} (ISRC ${trackInfo[m.id].isrc})</div>`
+    : `<div class="result ko">❌ Unmatched: this line does not belong to the Atlas Sound Records catalogue.</div>`;
+  document.getElementById('steps').innerHTML = h;
+}
+const inIsrc = document.getElementById('inIsrc'), inTitle = document.getElementById('inTitle'), inArtist = document.getElementById('inArtist');
+document.getElementById('testBtn').onclick = runTest;
+</script>
+</body>
+</html>
